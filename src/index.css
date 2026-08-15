@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@media print {
+  body {
+    background-color: white;
+  }
+  
+  /* Hide everything not meant for printing */
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Fix the overlay positioning during print */
+  .print-overlay {
+    position: static !important;
+    background: none !important;
+    display: block !important;
+    padding: 0 !important;
+  }
+  
+  /* Ensure the ticket takes the full printed page nicely */
+  .print-area {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Thermal printer common width styling */
+  .receipt-container {
+    width: 80mm;
+    margin: 0 auto;
+    color: black !important;
+  }
+}
+

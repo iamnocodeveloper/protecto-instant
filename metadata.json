@@ -1,0 +1,8 @@
+{
+  "name": "POS & Inventory System",
+  "description": "Sistema de facturación punto de venta (POS) y control de inventario.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
