@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { init, id, tx } from '@instantdb/react';
-import { Product, CartItem, Order } from '../types';
+import { Product, CartItem, Order, SystemSettings } from '../types';
 
 const APP_ID = '2d943233-e7f2-4526-aab6-349e06930f11';
 
@@ -13,6 +13,19 @@ const INITIAL_PRODUCTS: Omit<Product, 'id'>[] = [
   { name: 'Croissant', price: 2.00, stock: 30, imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f40ce88cb?auto=format&fit=crop&w=300&q=80' },
   { name: 'Tarta de Queso', price: 4.50, stock: 10, imageUrl: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=300&q=80' }
 ];
+
+const GLOBAL_SETTINGS_ID = 'f2a4e9b7-3c1d-48a5-8b2f-1a9e8b7c6d5f';
+
+const DEFAULT_SETTINGS: SystemSettings = {
+  id: GLOBAL_SETTINGS_ID,
+  logoUrl: '',
+  storeName: 'INVENTRACK SOLUTIONS S.A.',
+  storeRut: 'RUT: 77.452.100-K',
+  storeAddress: 'AV. LIBERTADOR #450, SANTIAGO',
+  storePhone: 'TEL: +56 2 2345 6789',
+  ticketMessage: '¡Gracias por su preferencia!',
+  taxRate: 16
+};
 
 interface AppContextType {
   products: Product[];
@@ -28,23 +41,43 @@ interface AppContextType {
   clearCart: () => void;
   
   checkout: () => Order | null;
+  
+  settings: SystemSettings;
+  updateSettings: (settings: Partial<SystemSettings>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const { isLoading, error, data } = db.useQuery({ products: {} });
+  const { isLoading, error, data } = db.useQuery({ products: {}, settings: {} });
   const products = (data?.products as Product[]) || [];
+  const settings = (data?.settings?.[0] as SystemSettings) || DEFAULT_SETTINGS;
   
   const [cart, setCart] = useState<CartItem[]>([]);
 
   // Seed DB if empty
   useEffect(() => {
-    if (!isLoading && !error && data?.products.length === 0) {
-      const transactions = INITIAL_PRODUCTS.map(p => tx.products[id()].update(p));
-      db.transact(transactions);
+    if (!isLoading && !error) {
+      const transactions = [];
+      if (data?.products.length === 0) {
+        transactions.push(...INITIAL_PRODUCTS.map(p => tx.products[id()].update(p)));
+      }
+      if (data?.settings.length === 0) {
+        transactions.push(tx.settings[GLOBAL_SETTINGS_ID].update(DEFAULT_SETTINGS));
+      }
+      if (transactions.length > 0) {
+        db.transact(transactions);
+      }
     }
   }, [isLoading, data, error]);
+
+  // --- Funciones de Configuración ---
+  const updateSettings = (newSettings: Partial<SystemSettings>) => {
+    // Si data.settings no está vacío, usamos el id del documento que existe
+    // En caso de que se haya creado previamente con otro id por error
+    const targetId = (data?.settings?.[0]?.id) || GLOBAL_SETTINGS_ID;
+    db.transact(tx.settings[targetId].update({ ...settings, ...newSettings }));
+  };
 
   // --- Funciones de Inventario ---
   const addProduct = (product: Omit<Product, 'id'>) => {
@@ -100,7 +133,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (cart.length === 0) return null;
 
     const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-    const tax = subtotal * 0.16; // 16% IVA por defecto
+    const tax = subtotal * (settings.taxRate / 100);
     const total = subtotal + tax;
 
     const orderId = id();
@@ -147,7 +180,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AppContext.Provider value={{
       products, isLoading, addProduct, updateProduct, deleteProduct,
-      cart, addToCart, removeFromCart, updateCartQuantity, clearCart, checkout
+      cart, addToCart, removeFromCart, updateCartQuantity, clearCart, checkout,
+      settings, updateSettings
     }}>
       {children}
     </AppContext.Provider>

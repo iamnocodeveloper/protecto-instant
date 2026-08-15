@@ -1,3 +1,14 @@
+export interface SystemSettings {
+  id: string;
+  logoUrl: string;
+  storeName: string;
+  storeRut: string;
+  storeAddress: string;
+  storePhone: string;
+  ticketMessage: string;
+  taxRate: number;
+}
+
 export interface Product {
   id: string;
   name: string;

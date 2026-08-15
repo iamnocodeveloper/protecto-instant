@@ -1,10 +1,11 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Store, Package, LogOut } from 'lucide-react';
-import { db } from '../store/AppContext';
+import { Store, Package, LogOut, Settings } from 'lucide-react';
+import { db, useAppContext } from '../store/AppContext';
 
 export const Layout = () => {
   const { user } = db.useAuth();
+  const { settings } = useAppContext();
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden no-print">
@@ -12,12 +13,18 @@ export const Layout = () => {
         {/* Sidebar */}
         <aside className="w-20 lg:w-64 bg-white border-r border-slate-200 flex flex-col items-center lg:items-start shrink-0">
           <div className="h-16 flex items-center justify-center lg:justify-start w-full lg:px-6 border-b border-slate-100">
-            <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200">
-              <Store className="text-white w-5 h-5" />
-            </div>
-            <h1 className="hidden lg:block ml-3 font-bold tracking-tight text-xl text-slate-900">
-              InvenTrack <span className="text-indigo-600">POS</span>
-            </h1>
+            {settings.logoUrl ? (
+              <img src={settings.logoUrl} alt="Logo" className="max-h-10 max-w-full object-contain" />
+            ) : (
+              <>
+                <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200">
+                  <Store className="text-white w-5 h-5" />
+                </div>
+                <h1 className="hidden lg:block ml-3 font-bold tracking-tight text-xl text-slate-900">
+                  InvenTrack <span className="text-indigo-600">POS</span>
+                </h1>
+              </>
+            )}
           </div>
           
           <nav className="flex-1 w-full py-4 flex flex-col gap-2 px-3">
@@ -31,7 +38,7 @@ export const Layout = () => {
               }`
             }
           >
-            <Store className="w-6 h-6" />
+            <Store className="w-6 h-6 lg:w-5 lg:h-5 shrink-0" />
             <span className="hidden lg:block ml-3">Punto de Venta</span>
           </NavLink>
           
@@ -45,8 +52,22 @@ export const Layout = () => {
               }`
             }
           >
-            <Package className="w-6 h-6" />
+            <Package className="w-6 h-6 lg:w-5 lg:h-5 shrink-0" />
             <span className="hidden lg:block ml-3">Inventario</span>
+          </NavLink>
+
+          <NavLink
+            to="/settings"
+            className={({ isActive }) => 
+              `flex items-center p-3 rounded-xl transition-colors ${
+                isActive 
+                  ? 'bg-indigo-50 text-indigo-700 font-bold' 
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+              }`
+            }
+          >
+            <Settings className="w-6 h-6 lg:w-5 lg:h-5 shrink-0" />
+            <span className="hidden lg:block ml-3">Configuración</span>
           </NavLink>
         </nav>
         

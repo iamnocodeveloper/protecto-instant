@@ -2,6 +2,7 @@ import React from 'react';
 import { Order } from '../types';
 import { format } from 'date-fns';
 import { Printer, X } from 'lucide-react';
+import { useAppContext } from '../store/AppContext';
 
 interface ReceiptProps {
   order: Order;
@@ -9,6 +10,8 @@ interface ReceiptProps {
 }
 
 export const Receipt: React.FC<ReceiptProps> = ({ order, onClose }) => {
+  const { settings } = useAppContext();
+
   const handlePrint = () => {
     window.print();
   };
@@ -21,11 +24,14 @@ export const Receipt: React.FC<ReceiptProps> = ({ order, onClose }) => {
         <div className="absolute top-0 left-0 right-0 h-1 bg-indigo-600 no-print"></div>
 
         {/* Contenido del Ticket */}
-        <div className="text-center space-y-1 mb-4 pt-2">
-          <p className="text-xs font-bold">INVENTRACK SOLUTIONS S.A.</p>
-          <p>RUT: 77.452.100-K</p>
-          <p>AV. LIBERTADOR #450, SANTIAGO</p>
-          <p>TEL: +56 2 2345 6789</p>
+        <div className="text-center space-y-1 mb-4 pt-2 flex flex-col items-center">
+          {settings.logoUrl && (
+            <img src={settings.logoUrl} alt="Logo" className="max-w-[120px] max-h-16 object-contain mb-2 grayscale" />
+          )}
+          <p className="text-xs font-bold">{settings.storeName}</p>
+          <p>{settings.storeRut}</p>
+          <p>{settings.storeAddress}</p>
+          <p>{settings.storePhone}</p>
         </div>
 
         <div className="border-b border-dashed border-black pb-2 mb-2 flex justify-between">
@@ -55,7 +61,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ order, onClose }) => {
             <span>${order.subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
-            <span>IVA (16%):</span>
+            <span>IVA ({settings.taxRate}%):</span>
             <span>${order.tax.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-bold text-xs pt-1 border-t border-black mt-1">
@@ -82,7 +88,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ order, onClose }) => {
             </div>
             <p className="mt-1 tracking-[0.3em]">{order.id}85721102</p>
           </div>
-          <p className="italic opacity-70">¡Gracias por su preferencia!</p>
+          <p className="italic opacity-70">{settings.ticketMessage}</p>
         </div>
 
         {/* Botones (No imprimibles) */}

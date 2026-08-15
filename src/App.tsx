@@ -9,6 +9,7 @@ import { Layout } from './components/Layout';
 import { POS } from './pages/POS';
 import { Inventory } from './pages/Inventory';
 import { Auth } from './pages/Auth';
+import { Settings } from './pages/Settings';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isLoading, user, error } = db.useAuth();
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<POS />} />
               <Route path="inventory" element={<Inventory />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
           </Routes>
         </BrowserRouter>

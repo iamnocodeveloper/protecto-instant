@@ -220,20 +220,63 @@ export const Inventory = () => {
                           const file = e.target.files?.[0];
                           if (!file) return;
                           
+                          // Helper to resize image and force JPEG for max compression
+                          const resizeImage = (file: File): Promise<string> => {
+                            return new Promise((resolve) => {
+                              const reader = new FileReader();
+                              reader.onload = (e) => {
+                                const img = new Image();
+                                img.onload = () => {
+                                  const canvas = document.createElement('canvas');
+                                  const MAX_WIDTH = 1024;
+                                  const MAX_HEIGHT = 1024;
+                                  let width = img.width;
+                                  let height = img.height;
+                                  
+                                  if (width > height) {
+                                    if (width > MAX_WIDTH) {
+                                      height *= MAX_WIDTH / width;
+                                      width = MAX_WIDTH;
+                                    }
+                                  } else {
+                                    if (height > MAX_HEIGHT) {
+                                      width *= MAX_HEIGHT / height;
+                                      height = MAX_HEIGHT;
+                                    }
+                                  }
+                                  
+                                  canvas.width = width;
+                                  canvas.height = height;
+                                  const ctx = canvas.getContext('2d');
+                                  if (ctx) {
+                                    ctx.fillStyle = '#FFFFFF';
+                                    ctx.fillRect(0, 0, width, height);
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                  }
+                                  
+                                  // Empezamos con una calidad decente
+                                  let quality = 0.8;
+                                  let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                                  
+                                  // Verificamos si supera 1MB
+                                  while (dataUrl.length * 0.75 > 1048576 && quality > 0.1) {
+                                    quality -= 0.1;
+                                    dataUrl = canvas.toDataURL('image/jpeg', quality);
+                                  }
+                                  
+                                  resolve(dataUrl);
+                                };
+                                img.src = e.target?.result as string;
+                              };
+                              reader.readAsDataURL(file);
+                            });
+                          };
+
                           try {
-                            // Intento de usar el storage de InstantDB
-                            const path = `products/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
-                            await db.storage.uploadFile(path, file);
-                            const downloadUrl = await db.storage.getDownloadUrl(path);
-                            setFormData({...formData, imageUrl: downloadUrl});
+                            const resizedBase64 = await resizeImage(file);
+                            setFormData({...formData, imageUrl: resizedBase64});
                           } catch (err) {
-                            console.error('Error usando InstantDB Storage, usando Base64 como fallback:', err);
-                            // Fallback a Base64 si el storage no está configurado
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setFormData({...formData, imageUrl: reader.result as string});
-                            };
-                            reader.readAsDataURL(file);
+                            console.error('Error procesando imagen:', err);
                           }
                         }}
                       />

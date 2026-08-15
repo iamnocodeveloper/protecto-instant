@@ -5,7 +5,7 @@ import { ShoppingCart, Plus, Minus, Trash2, Search } from 'lucide-react';
 import { Order } from '../types';
 
 export const POS = () => {
-  const { products, isLoading, cart, addToCart, removeFromCart, updateCartQuantity, checkout } = useAppContext();
+  const { products, isLoading, cart, addToCart, removeFromCart, updateCartQuantity, checkout, settings } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
 
@@ -14,7 +14,7 @@ export const POS = () => {
   );
 
   const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-  const tax = subtotal * 0.16;
+  const tax = subtotal * (settings.taxRate / 100);
   const total = subtotal + tax;
 
   const handleCheckout = () => {
@@ -167,7 +167,7 @@ export const POS = () => {
             <span className="font-semibold text-slate-900">${subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Impuestos (16%)</span>
+            <span className="text-slate-500">Impuestos ({settings.taxRate}%)</span>
             <span className="font-semibold text-slate-900">${tax.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-xl font-black pt-2 border-t border-slate-200">
